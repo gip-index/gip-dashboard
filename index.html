@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>G-Pulse (GIP) – Global Inflation Pulse Index</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e14;
+            color: #e6e1cf;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #131820;
+            border: 1px solid #2a3342;
+            border-radius: 24px;
+            padding: 50px 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .badge {
+            display: inline-block;
+            background: #1a2332;
+            color: #3cc8ff;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #3a4557;
+        }
+        h1 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #8b95a5;
+            text-transform: uppercase;
+            letter-spacing: 0.10em;
+            margin-bottom: 8px;
+        }
+        .score-wrapper { margin: 20px 0 5px; }
+        .dual-score {
+            font-size: 55px;
+            font-weight: 700;
+            line-height: 1.2;
+            background: linear-gradient(180deg, #ffffff 0%, #a0b0d0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+        }
+        .dual-score .arrow {
+            font-size: 30px;
+            color: #6b7a90;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+        .gip-formula {
+            font-size: 12px;
+            color: #6b7a90;
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+        .label {
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        .change {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .confidence {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin: 8px 0 10px;
+        }
+        .confidence-HIGH { background: #1a4c2a; color: #4fc97a; }
+        .confidence-MEDIUM { background: #4a3e1a; color: #f2c94c; }
+        .confidence-LOW { background: #4a1a1a; color: #f26b6b; }
+        .scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #4a5568;
+            margin: 10px 0 15px;
+            padding: 0 10px;
+        }
+        .scale span:first-child { color: #4fc97a; }
+        .scale span:last-child { color: #f26b6b; }
+        .bar {
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(to right, #4fc97a, #f2c94c, #f26b6b);
+            margin: 0 10px 25px;
+        }
+        .sources-toggle, .methodology-toggle, .market-data-toggle {
+            background: none;
+            border: 1px solid #2a3342;
+            color: #3cc8ff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 15px 0 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sources-list, .methodology-content, .market-data-list {
+            display: none;
+            text-align: left;
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #2a3342;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #b0bdcf;
+        }
+        .sources-list.open, .methodology-content.open, .market-data-list.open { display: block; }
+        .methodology-content p { margin-bottom: 10px; }
+        .methodology-content strong { color: #f2c94c; }
+        .source-item, .market-data-item {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #8b95a5;
+        }
+        .source-item a, .market-data-item a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        .source-item a:hover, .market-data-item a:hover { text-decoration: underline; }
+
+        .market-divider {
+            border: none;
+            border-top: 1px solid #2a3342;
+            margin: 25px 0 20px;
+        }
+        .market-heading {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: #ffb454 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.10em !important;
+            margin-bottom: 10px !important;
+        }
+        .market-score {
+            font-size: 55px !important;
+            font-weight: 700 !important;
+            line-height: 1.1 !important;
+            color: #ffb454 !important;
+            text-shadow: 0 0 22px rgba(255,180,84,0.6) !important;
+        }
+        .market-label {
+            font-size: 17px !important;
+            font-weight: 600 !important;
+            color: #ffb454 !important;
+            margin-top: 4px !important;
+        }
+        .meta {
+            font-size: 13px;
+            color: #c5cdd9;
+            border-top: 1px solid #1e2733;
+            padding-top: 20px;
+            margin-top: 15px;
+        }
+        .meta .computation-time {
+            color: #00e5ff;
+            font-weight: 600;
+            text-shadow: 0 0 6px rgba(0,229,255,0.3);
+        }
+        .meta .utc-label {
+            color: #c5cdd9;
+            font-weight: 500;
+            text-shadow: none;
+        }
+        .cached-notice {
+            display: inline-block;
+            background: #3a3a1a;
+            color: #f2c94c;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+        .legal-link {
+            display: block;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .legal-link a {
+            color: #8b95a5;
+            text-decoration: underline;
+        }
+        .error, .loading { font-size: 16px; margin: 30px 0; }
+        .error { color: #f26b6b; }
+        .loading { color: #6b7a90; animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; }
+        }
+        a { color: #ffb454; text-decoration: none; font-size: 13px; }
+        a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .container { padding: 30px 24px; }
+            .dual-score { font-size: 42px; }
+            .dual-score .arrow { font-size: 24px; }
+            .market-score { font-size: 42px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="badge">G‑Pulse (GIP)</div>
+        <h1>Global Inflation Pulse Index</h1>
+        <div id="content">
+            <div class="loading" id="loading">Loading…</div>
+            <div id="result" style="display:none;">
+                <div class="score-wrapper">
+                    <div class="dual-score" id="gipDualScore"></div>
+                    <div class="gip-formula" id="gipFormula"></div>
+                </div>
+                <div class="label" id="gipLabel"></div>
+                <div class="change" id="gipChange"></div>
+                <div class="confidence" id="gipConfidence"></div>
+                <div class="bar"></div>
+                <div class="scale">
+                    <span>Deflationary</span><span>Neutral</span><span>Inflationary</span>
+                </div>
+                <button class="sources-toggle" id="sourcesBtn">
+                    📄 Sources <span id="sourcesCount"></span>
+                    <span style="float:right;">▼</span>
+                </button>
+                <div class="sources-list" id="sourcesList"></div>
+
+                <button class="methodology-toggle" id="methodologyBtn">
+                    📐 Methodology <span style="float:right;">▼</span>
+                </button>
+                <div class="methodology-content" id="methodologyContent">
+                    <p><strong>1. Scale:</strong> The G‑Pulse Index ranges from 0 (extremely deflationary) to 100 (extremely inflationary). It measures global price pressures and inflation expectations using AI‑driven sentiment analysis of earnings calls, ISM reports, BLS CPI releases, shipping statements, inflation news, and commodity price movements.</p>
+                    <p><strong>2. What “inflationary/deflationary” means:</strong> The score reflects language about input costs, wage growth, pricing power, supply chain bottlenecks, and demand strength. A score above 60 suggests accelerating price pressures; below 40 suggests easing price pressures or weak demand.</p>
+                    <p><strong>3. Dual display:</strong> The headline shows <strong>raw → smoothed</strong>:
+                    <br>– <strong>Raw score</strong> – the immediate average of today's document scores, reacting instantly to new data.
+                    <br>– <strong>Smoothed score</strong> – a 7‑day moving average, designed to filter out noise and reveal the underlying trend.</p>
+                    <p><strong>4. Market expectation:</strong> A companion score derived from breakeven inflation rates (TIPS) and commodity prices (gold, oil), displayed below the GIP data. It is produced by a separate service and serves as a real‑world check against the document‑driven GIP score.</p>
+                    <p><strong>5. Confidence:</strong> HIGH, MEDIUM, or LOW based on the breadth of sources analysed and the total text volume.</p>
+                </div>
+
+                <hr class="market-divider">
+                <div class="market-heading" id="marketHeading" style="display:none;">Market Expectation</div>
+                <div class="market-score" id="marketScore" style="display:none;">--</div>
+                <div class="market-label" id="marketLabel" style="display:none;"></div>
+
+                <button class="market-data-toggle" id="marketDataBtn" style="display:none;">
+                    📊 Market Data <span style="float:right;">▼</span>
+                </button>
+                <div class="market-data-list" id="marketDataList"></div>
+
+                <div class="meta">
+                    Index computation time:
+                    <span class="computation-time" id="gipTimestamp"></span>
+                    <span class="utc-label"> UTC</span>
+                    <span class="cached-notice" id="cachedNotice" style="display:none;">last reading</span>
+                </div>
+                <div class="legal-link">
+                    <a href="legal/terms.html" target="_blank">Terms of Service & Disclaimer</a>
+                </div>
+                <div class="legal-link" style="margin-top:4px;">
+                    <a href="https://gip-index.onrender.com/api/gip_latest" target="_blank">View raw API</a>
+                </div>
+            </div>
+            <div class="error" id="error" style="display:none;">Unable to load index data. Please try again later.</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://gip-index.onrender.com/api/gip_latest';
+        const MARKET_API_URL = 'https://gip-market.onrender.com/api/market_gip';
+        const CACHE_KEY = 'gip_last_reading';
+
+        function getGradientColor(score) {
+            const s = Math.max(0, Math.min(100, score));
+            const green = { r: 79,  g: 201, b: 122 };
+            const yellow = { r: 242, g: 201, b: 76 };
+            const red = { r: 242, g: 107, b: 107 };
+            let r, g, b;
+            if (s <= 50) {
+                const t = s / 50;
+                r = Math.round(green.r + t * (yellow.r - green.r));
+                g = Math.round(green.g + t * (yellow.g - green.g));
+                b = Math.round(green.b + t * (yellow.b - green.b));
+            } else {
+                const t = (s - 50) / 50;
+                r = Math.round(yellow.r + t * (red.r - yellow.r));
+                g = Math.round(yellow.g + t * (red.g - yellow.g));
+                b = Math.round(yellow.b + t * (red.b - yellow.b));
+            }
+            return `rgb(${r},${g},${b})`;
+        }
+
+        function saveLastReading(data) {
+            const reading = {
+                score: data.score,
+                raw_score: data.raw_score,
+                change: data.change,
+                confidence: data.confidence,
+                sourcesCount: data.sources ? data.sources.length : 0,
+                timestamp: data.timestamp,
+                labelText: '',
+                savedAt: new Date().toISOString()
+            };
+            const s = data.score;
+            if (s <= 20) reading.labelText = 'Extremely Deflationary';
+            else if (s <= 40) reading.labelText = 'Deflationary';
+            else if (s <= 60) reading.labelText = 'Neutral';
+            else if (s <= 80) reading.labelText = 'Inflationary';
+            else reading.labelText = 'Extremely Inflationary';
+            localStorage.setItem(CACHE_KEY, JSON.stringify(reading));
+        }
+
+        async function fetchMarketExpectation() {
+            try {
+                const response = await fetch(MARKET_API_URL);
+                if (!response.ok) throw new Error('Market data unavailable');
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('marketHeading').style.display = 'block';
+                const scoreEl = document.getElementById('marketScore');
+                scoreEl.style.display = 'block';
+                scoreEl.innerText = data.score.toFixed(1);
+
+                const labelEl = document.getElementById('marketLabel');
+                labelEl.style.display = 'block';
+                labelEl.innerText = data.label;
+
+                const comp = data.components;
+                if (comp) {
+                    const listEl = document.getElementById('marketDataList');
+                    listEl.innerHTML = `
+                        <div class="market-data-item"><strong>Breakeven inflation (5‑year TIPS):</strong> ${comp.breakeven_rate !== null ? comp.breakeven_rate.toFixed(2) + '%' : 'N/A'}</div>
+                        <div class="market-data-item"><strong>Gold price change:</strong> ${comp.gold_change !== 0 ? (comp.gold_change > 0 ? '+' : '') + comp.gold_change.toFixed(2) + '%' : '0%'}</div>
+                        <div class="market-data-item"><strong>Oil price change (WTI):</strong> ${comp.oil_change !== 0 ? (comp.oil_change > 0 ? '+' : '') + comp.oil_change.toFixed(2) + '%' : '0%'}</div>
+                        <div class="market-data-item" style="margin-top:8px; color:#f2c94c;"><strong>Market GIP = (Breakeven + Gold + Oil) / 3</strong></div>
+                    `;
+                    document.getElementById('marketDataBtn').style.display = 'flex';
+                }
+            } catch (err) {
+                console.error('Market expectation fetch error:', err);
+                document.getElementById('marketHeading').style.display = 'none';
+                document.getElementById('marketScore').style.display = 'none';
+                document.getElementById('marketLabel').style.display = 'none';
+                document.getElementById('marketDataBtn').style.display = 'none';
+            }
+        }
+
+        function displayReading(data, isCached = false) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+
+            const score = data.score;
+            const raw = data.raw_score !== undefined ? data.raw_score : score;
+
+            document.getElementById('gipDualScore').innerHTML =
+                `<span class="raw">${raw.toFixed(1)}</span> <span class="arrow">→</span> ${score.toFixed(1)}`;
+
+            document.getElementById('gipFormula').innerText =
+                'GIP = average(document scores) → smoothed 7‑day moving average';
+
+            let labelText = '';
+            if (score <= 20) labelText = 'Extremely Deflationary';
+            else if (score <= 40) labelText = 'Deflationary';
+            else if (score <= 60) labelText = 'Neutral';
+            else if (score <= 80) labelText = 'Inflationary';
+            else labelText = 'Extremely Inflationary';
+
+            const labelEl = document.getElementById('gipLabel');
+            labelEl.innerText = labelText;
+            labelEl.style.color = getGradientColor(score);
+
+            const change = parseFloat(data.change) || 0;
+            const changeEl = document.getElementById('gipChange');
+            if (change === 0) {
+                changeEl.innerHTML = `— ${Math.abs(change).toFixed(1)}`;
+                changeEl.style.color = '#8b95a5';
+            } else {
+                const arrow = change > 0 ? '▲' : '▼';
+                changeEl.innerHTML = `${arrow} ${Math.abs(change).toFixed(1)}`;
+                changeEl.style.color = change > 0 ? '#f26b6b' : '#4fc97a';
+            }
+
+            const confEl = document.getElementById('gipConfidence');
+            const confidence = data.confidence || 'MEDIUM';
+            confEl.innerText = `Confidence: ${confidence}`;
+            confEl.className = 'confidence confidence-' + confidence;
+
+            const sourcesCount = data.sources ? data.sources.length : (data.sourcesCount || 0);
+            document.getElementById('sourcesCount').innerText = `(${sourcesCount})`;
+
+            const sources = data.sources || [];
+            const listEl = document.getElementById('sourcesList');
+            if (sources.length > 0) {
+                listEl.innerHTML = sources.map(s => {
+                    return `<div class="source-item">
+                        <a href="${s.url}" target="_blank">${s.title}</a>
+                        <span style="color:#5a6577;"> (${s.type}, ${s.chars} chars)</span>
+                    </div>`;
+                }).join('');
+            } else if (isCached) {
+                listEl.innerHTML = '<div class="source-item">Source details unavailable for cached reading.</div>';
+            }
+
+            const ts = data.timestamp || data.savedAt || '';
+            const dt = new Date(ts);
+            const displayTs = dt.toLocaleString('en-US', {
+                hour:'2-digit', minute:'2-digit', second:'2-digit',
+                month:'short', day:'numeric', year:'numeric', timeZone:'UTC'
+            });
+            document.getElementById('gipTimestamp').innerText = displayTs;
+
+            const cachedNotice = document.getElementById('cachedNotice');
+            if (isCached) {
+                cachedNotice.style.display = 'inline-block';
+            } else {
+                cachedNotice.style.display = 'none';
+            }
+        }
+
+        async function fetchGIP() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Network error');
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                saveLastReading(data);
+                displayReading(data, false);
+                fetchMarketExpectation();
+
+            } catch (err) {
+                console.error('GIP fetch error:', err);
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const cachedData = JSON.parse(cached);
+                    displayReading(cachedData, true);
+                    fetchMarketExpectation();
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                }
+            }
+        }
+
+        document.getElementById('sourcesBtn').addEventListener('click', function() {
+            const list = document.getElementById('sourcesList');
+            list.classList.toggle('open');
+            this.querySelector('span:last-child').innerText = list.classList.contains('open') ? '▲' : '▼';
+        });
+
+        document.getElementById('methodologyBtn').addEventListener('click', function() {
+            const content = document.getElementById('methodologyContent');
+            content.classList.toggle('open');
+            this.querySelector('span:last-child').innerText = content.classList.contains('open') ? '▲' : '▼';
+        });
+
+        document.getElementById('marketDataBtn').addEventListener('click', function() {
+            const list = document.getElementById('marketDataList');
+            list.classList.toggle('open');
+            this.querySelector('span:last-child').innerText = list.classList.contains('open') ? '▲' : '▼';
+        });
+
+        fetchGIP();
+        setInterval(fetchGIP, 600000);
+    </script>
+</body>
+</html>
