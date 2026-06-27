@@ -629,7 +629,10 @@
             try {
                 console.log('Fetching APIs...');
                 const [gipResponse, marketResponse, driversResponse] = await Promise.all([
-                    fetchWithTimeout(API_URL).catch(() => null),
+                    fetchWithTimeout(API_URL).catch(err => {
+                        console.error('GIP API fetch error:', err);
+                        return null;
+                    }),
                     fetchWithTimeout(MARKET_API_URL).catch(() => null),
                     fetchWithTimeout(DRIVERS_API_URL).catch(() => null)
                 ]);
