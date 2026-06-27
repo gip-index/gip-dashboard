@@ -636,36 +636,48 @@
 
                 console.log('API responses received');
                 console.log('gipResponse ok?', gipResponse ? gipResponse.ok : 'no response');
-                
+
                 // Process GIP data
                 let data = null;
                 if (gipResponse && gipResponse.ok) {
                     try {
                         data = await gipResponse.json();
+                        console.log('GIP data received:', data);
                         if (data && !data.error) {
                             saveLastReading(data);
                             displayReading(data, false);
+                        } else {
+                            console.warn('GIP data error:', data ? data.error : 'no data');
                         }
                     } catch (e) {
                         console.warn('GIP data parse error:', e);
                     }
+                } else {
+                    console.warn('GIP response not OK or missing');
                 }
 
                 if (!data) {
+                    console.log('No FTN data, checking cache...');
                     const cached = localStorage.getItem(CACHE_KEY);
+                    console.log('Cached data:', cached);
                     if (cached) {
                         try {
                             const cachedData = JSON.parse(cached);
                             const cachedAge = Date.now() - new Date(cachedData.savedAt).getTime();
                             const maxAge = 30 * 60 * 1000;
                             if (cachedAge < maxAge) {
+                                console.log('Cache is fresh, displaying cached data');
                                 displayReading(cachedData, true);
                             } else {
+                                console.log('Cache is too old, showing error');
                                 document.getElementById('loading').style.display = 'none';
                                 document.getElementById('error').style.display = 'block';
                             }
-                        } catch (e) { /* ignore */ }
+                        } catch (e) {
+                            console.warn('Cache parse error:', e);
+                        }
                     } else {
+                        console.log('No cached data found');
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('error').style.display = 'block';
                     }
