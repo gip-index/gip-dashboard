@@ -617,7 +617,7 @@
         async function fetchGIP() {
             console.log('fetchGIP started');
 
-            const fetchWithTimeout = (url, timeout = 10000) => {
+            const fetchWithTimeout = (url, timeout = 15000) => {
                 return Promise.race([
                     fetch(url),
                     new Promise((_, reject) =>
