@@ -635,7 +635,8 @@
                 ]);
 
                 console.log('API responses received');
-
+                console.log('gipResponse ok?', gipResponse ? gipResponse.ok : 'no response');
+                
                 // Process GIP data
                 let data = null;
                 if (gipResponse && gipResponse.ok) {
